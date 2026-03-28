@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Secure Invitation</title>
+
+<style>
+body {
+  margin: 0;
+  background: black;
+  color: #00ff00;
+  font-family: "Courier New", monospace;
+  overflow: hidden;
+}
+
+/* MATRIX */
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* CONTENT */
+#content {
+  position: relative;
+  text-align: center;
+  margin-top: 80px;
+  z-index: 2;
+}
+
+.hidden {
+  display: none;
+}
+
+/* BUTTONS */
+button {
+  background: black;
+  color: #00ff00;
+  border: 2px solid #00ff00;
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #00ff00;
+  color: black;
+}
+
+/* NEIN BUTTON */
+#nein {
+  position: absolute;
+}
+
+/* LOGIN BOX */
+input {
+  padding: 8px;
+  background: black;
+  border: 1px solid #00ff00;
+  color: #00ff00;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="matrix"></canvas>
+
+<div id="content">
+
+<!-- LOGIN -->
+<div id="login">
+  <h1>ACCESS REQUIRED</h1>
+  <p>Rätsel:</p>
+  <p>Ich bin dieses Jahr besonders,<br>und du sollst dabei sein.<br>Was bin ich?</p>
+
+  <input id="pw">
+  <button onclick="checkPw()">Enter</button>
+  <p id="error"></p>
+</div>
+
+<!-- LOADING -->
+<div id="loading" class="hidden">
+  <p>System wird geladen...</p>
+</div>
+
+<!-- TERMINAL -->
+<div id="terminal" class="hidden">
+  <p id="text"></p>
+
+  <div id="buttons" class="hidden">
+    <button onclick="antwort()">[ JA ]</button>
+    <button id="nein">[ NEIN ]</button>
+  </div>
+
+  <p id="antwort"></p>
+  <h2 id="countdown"></h2>
+</div>
+
+</div>
+
+<script>
+
+/* ---------------- MATRIX ---------------- */
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+
+canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+
+const letters = "01";
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+const drops = Array(Math.floor(columns)).fill(1);
+
+function draw() {
+  ctx.fillStyle = "rgba(0,0,0,0.12)"; // dunkler = besser lesbar
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#008000"; // dunkleres Grün
+  ctx.font = fontSize + "px monospace";
+
+  for (let i = 0; i < drops.length; i++) {
+    const text = letters[Math.floor(Math.random() * letters.length)];
+    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975)
+      drops[i] = 0;
+
+    drops[i]++;
+  }
+}
+
+setInterval(draw, 33);
+
+/* ---------------- LOGIN ---------------- */
+function checkPw() {
+  const pw = document.getElementById("pw").value.toLowerCase();
+
+  if (pw.includes("18. geburtstag")) { 
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("loading").classList.remove("hidden");
+
+    setTimeout(() => {
+      document.getElementById("loading").classList.add("hidden");
+      document.getElementById("terminal").classList.remove("hidden");
+      typeText();
+    }, 2000);
+
+  } else {
+    document.getElementById("error").innerText = "ACCESS DENIED";
+  }
+}
+
+/* ---------------- TYPING ---------------- */
+const message = [
+  "SYSTEM ONLINE...",
+  "Identität bestätigt.",
+  "Event: geburtstag.exe",
+  "Datum: 1. Mai 2026",   // ANPASSEN
+  "Ort: Bei mir",             // ANPASSEN
+  "Status: Einladung aktiv",
+  "Möchtest du teilnehmen?"
+];
+
+let i = 0;
+
+function typeText() {
+  if (i < message.length) {
+    document.getElementById("text").innerHTML += message[i] + "<br>";
+    i++;
+    setTimeout(typeText, 700);
+  } else {
+    document.getElementById("buttons").classList.remove("hidden");
+  }
+}
+
+/* ---------------- JA ---------------- */
+function antwort() {
+  document.getElementById("antwort").innerText =
+    ">>> Teilnahme bestätigt. Gute Entscheidung";
+
+  document.getElementById("nein").style.display = "none";
+
+  startCountdown();
+}
+
+/* ---------------- COUNTDOWN ---------------- */
+function startCountdown() {
+  const ziel = new Date("May 1, 2026 00:00:00").getTime(); // ANPASSEN
+
+  setInterval(() => {
+    let jetzt = new Date().getTime();
+    let diff = ziel - jetzt;
+
+    let tage = Math.floor(diff / (1000 * 60 * 60 * 24));
+    let stunden = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    let minuten = Math.floor((diff / (1000 * 60)) % 60);
+
+    document.getElementById("countdown").innerText =
+      "Countdown: " + tage + "d " + stunden + "h " + minuten + "m";
+  }, 1000);
+}
+
+/* ---------------- NEIN BUTTON ---------------- */
+const neinBtn = document.getElementById("nein");
+
+neinBtn.addEventListener("mouseover", () => {
+  const maxX = window.innerWidth - 100;
+  const maxY = window.innerHeight - 50;
+
+  neinBtn.style.left = Math.random() * maxX + "px";
+  neinBtn.style.top = Math.random() * maxY + "px";
+});
+
+</script>
+
+</body>
+</html>
